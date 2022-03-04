@@ -1,0 +1,95 @@
+{% extends 'main/base.html' %}
+{% load static %}
+{% block title %}
+    <title> {{ title }}</title>
+{% endblock %}
+{% block content %}
+    <table class="mt-5 table table-striped " id="table_id">
+        <thead>
+        <tr>
+            {% for field in fields %}
+                {% if field != 'create_at' %}
+                    <th scope="col" onclick="sortColumn('{{ field }}')">{{ field|title }}</th>
+                {% else %}
+                    <th scope="col">{{ field|title }}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody id="tableData">
+        </tbody>
+    </table>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link">Previous</a>
+            </li>
+            <li class="page-item"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+{% endblock %}
+
+{% block customscripts %}
+    <script>
+        let sortDirection = false;
+        let entityData = [
+            {% for entity in entity_list %}
+                {
+                    id: {{entity.id}},
+                    create_at: '{{entity.create_at|date:"Y-m-H"}}',
+                    name: '{{entity.name}}',
+                    count: {{entity.count}},
+                    distance: {{entity.distance}}
+                },
+            {% endfor %}
+        ];
+
+        window.onload = () => {
+            loadTableData(entityData);
+        }
+
+        function loadTableData(entityData) {
+            const tableBody = document.getElementById('tableData');
+            let dataHtml = '';
+            for (let entity of entityData) {
+                dataHtml += `<tr><td>${entity.id}</td><td>${entity.create_at}</td><td>${entity.name}</td><td>${entity.count}</td><td>${entity.distance}</td></tr>`;
+            }
+            {#console.log(dataHtml)#}
+            tableBody.innerHTML = dataHtml;
+        }
+
+        function sortColumn(columnName) {
+            const dataType = typeof entityData[0][columnName];
+            {#console.log(dataType)#}
+            sortDirection = !sortDirection;
+
+            switch (dataType) {
+                case "number":
+                    sortNumberColumn(sortDirection, columnName);
+                    break;
+                case "string":
+                    sortStringColumn(sortDirection, columnName);
+                    break;
+            }
+            {#console.log(entityData)#}
+            loadTableData(entityData);
+        }
+
+        function sortNumberColumn(sort, columnName) {
+            entityData = entityData.sort((a, b) => {
+                return sort ? a[columnName] - b[columnName] : b[columnName] - a[columnName]
+            });
+        }
+
+        function sortStringColumn(sort, columnName) {
+            entityData = entityData.sort(function (a, b) {
+                return sort ? ('' + a[columnName]).localeCompare(b[columnName]) : ('' + b[columnName]).localeCompare(a[columnName])
+            });
+        }
+    </script>
+{% endblock %}
